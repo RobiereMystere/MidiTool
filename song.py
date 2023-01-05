@@ -1,10 +1,12 @@
-from random import random, choice
+import random
 
 from midi_generator import MidiGenerator
 
 
 class Song:
     def __init__(self, random_song=False):
+        self.seed = 13101991
+        random.seed(self.seed)
         self.instruments = {}
         chords = list(MidiGenerator.chords.keys())
         if not random_song:
@@ -21,12 +23,12 @@ class Song:
             }
 
         else:
-            instruments_number = int(random() * 3) + 1
+            instruments_number = int(random.random() * 3) + 1
             for i in range(instruments_number):
                 score = ""
-                for note_index in range(int(random() * 10) + 4):
-                    score += choice(chords) + (" " * (int(random() * 4) + 1))
+                for note_index in range(int(random.random() * 10) + 4):
+                    score += random.choice(chords) + (" " * (int(random.random() * 4) + 1))
 
                     print(score)
-                self.instruments[int(random() * 128) + 1] = {"score": score * (int(random() * 4) + 1),
-                                                             "volume": int(random() * 40) + 20}
+                self.instruments[int(random.random() * 128) + 1] = {"score": score * (int(random.random() * 10) + 3),
+                                                                    "volume": int(random.random() * 40) + 20}
