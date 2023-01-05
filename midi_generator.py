@@ -111,10 +111,10 @@ class MidiGenerator:
         for instrument_index, instrument_name in self.instruments.items():
             self.midi.addTrackName(track, 0, "Track" + str(track))
             self.midi.addTempo(track, 0, self.tempo)
-            self.midi.addProgramChange(track, track, 0, instrument_index)
+            self.midi.addProgramChange(track, 0, 0, instrument_index)
             track += 1
 
-    def read_score(self, delimiter):
+    def read_score(self, delimiter, channel=1):
         track = 0
         for instrument, caracteristics in self.instruments.items():
             self.time = 0
@@ -130,24 +130,26 @@ class MidiGenerator:
                 else:
                     if previous != "" and duration:
                         if previous[0].isupper():
-                            self.add_chord(track, previous, duration, caracteristics["volume"])
+                            self.add_chord(track, previous, duration, caracteristics["volume"],
+                                           caracteristics["channel"])
                         else:
-                            self.add_note(track, previous, duration, caracteristics["volume"])
+                            self.add_note(track, previous, duration, caracteristics["volume"],
+                                          caracteristics["channel"])
                         duration = 1
 
                     previous = note
             track += 1
 
-    def add_chord(self, track, chord, duration, volume):
+    def add_chord(self, track, chord, duration, volume, channel):
         for note in self.chords[chord]:
             log(track, track, self.notes[note.upper()], self.time, duration, volume)
-            self.midi.addNote(track, track, self.notes[note.upper()] + 25, self.time, duration, volume)
+            self.midi.addNote(track, channel, self.notes[note.upper()] + 12, self.time, duration, volume)
 
         self.time += duration
 
-    def add_note(self, track, note, duration, volume):
+    def add_note(self, track, note, duration, volume, channel):
         log(track, track, self.notes[note.upper()], self.time, duration, volume)
-        self.midi.addNote(track, track, self.notes[note.upper()] + 25, self.time, duration, volume)
+        self.midi.addNote(track, channel, self.notes[note.upper()] + 12, self.time, duration, volume)
         self.time += duration
 
     def write_file(self, filename):

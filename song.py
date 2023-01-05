@@ -39,6 +39,7 @@ class Song:
 
                     log(score)
                 self.instruments[int(random.random() * 128) + 1] = {"score": score * (int(random.random() * 10) + 3),
-                                                                    "volume": int(random.random() * 40) + 20}
+                                                                    "volume": int(random.random() * 40) + 20,
+                                                                    "channel": int(random.random() * 2) * 9}
         print(self.instruments.keys())
         print(self.instruments.values())
