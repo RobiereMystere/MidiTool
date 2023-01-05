@@ -88,18 +88,17 @@ class MidiGenerator:
         "G#madd9": ["G#", "C", "D#", "A"]
     }
 
-    def __init__(self, score, config=None):
+    def __init__(self, config=None):
         super().__init__()
         self.time = 0
-
-        self.score = score
         if config is not None:
             self.track_number = config.track_number
             self.channel_number = config.channel_number
             self.instruments = config.instruments
             self.tempo = config.tempo
-
+            self.default_volume = config.default_volume
         else:
+            self.default_volume = 20
             self.track_number = 1
             self.channel_number = 1
             self.instruments = {1: "Piano"}
@@ -113,33 +112,40 @@ class MidiGenerator:
             self.midi.addProgramChange(track, track, 0, instrument_index)
             track += 1
 
-    def read_score(self,delim):
-        notes = self.score.split(delim)
-        previous = ""
-        duration = 1
-        for note in notes:
-            if note == "":
-                duration += 1
-            else:
-                if previous != "" and duration:
-                    if previous[0].isupper():
-                        self.add_chord(previous, duration)
-                    else:
-                        self.add_note(previous, duration)
-                    duration = 1
+    def read_score(self, delimiter):
+        track = 0
+        for instrument, caracteristics in self.instruments.items():
+            self.time = 0
+            notes = caracteristics["score"].split(delimiter)
+            previous = ""
+            duration = 1
+            for note in notes:
+                if note == "":
+                    duration += 1
+                    if previous == "":
+                        self.time += 1
+                        duration = 1
+                else:
+                    if previous != "" and duration:
+                        if previous[0].isupper():
+                            self.add_chord(track, previous, duration, caracteristics["volume"])
+                        else:
+                            self.add_note(track, previous, duration, caracteristics["volume"])
+                        duration = 1
 
-                previous = note
+                    previous = note
+            track += 1
 
-    def add_chord(self, chord, duration):
+    def add_chord(self, track, chord, duration, volume):
         for note in self.chords[chord]:
-            print(0, 0, self.notes[note.upper()], self.time, duration, 100)
-            self.midi.addNote(0, 0, self.notes[note.upper()] + 25, self.time, duration, 100)
+            print(track, track, self.notes[note.upper()], self.time, duration, volume)
+            self.midi.addNote(track, track, self.notes[note.upper()] + 25, self.time, duration, volume)
 
         self.time += duration
 
-    def add_note(self, note, duration):
-        print(1, 1, self.notes[note.upper()], self.time, duration, 100)
-        self.midi.addNote(0, 0, self.notes[note.upper()] + 25, self.time, duration, 100)
+    def add_note(self, track, note, duration, volume):
+        print(track, track, self.notes[note.upper()], self.time, duration, volume)
+        self.midi.addNote(track, track, self.notes[note.upper()] + 25, self.time, duration, volume)
         self.time += duration
 
     def write_file(self, filename):
