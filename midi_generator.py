@@ -1,5 +1,7 @@
 from midiutil import MIDIFile
 
+from loglib import log
+
 
 class MidiGenerator:
     notes = {
@@ -138,13 +140,13 @@ class MidiGenerator:
 
     def add_chord(self, track, chord, duration, volume):
         for note in self.chords[chord]:
-            print(track, track, self.notes[note.upper()], self.time, duration, volume)
+            log(track, track, self.notes[note.upper()], self.time, duration, volume)
             self.midi.addNote(track, track, self.notes[note.upper()] + 25, self.time, duration, volume)
 
         self.time += duration
 
     def add_note(self, track, note, duration, volume):
-        print(track, track, self.notes[note.upper()], self.time, duration, volume)
+        log(track, track, self.notes[note.upper()], self.time, duration, volume)
         self.midi.addNote(track, track, self.notes[note.upper()] + 25, self.time, duration, volume)
         self.time += duration
 

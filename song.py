@@ -1,14 +1,21 @@
 import random
 
+from loglib import log
 from midi_generator import MidiGenerator
 
 
 class Song:
-    def __init__(self, random_song=False):
-        self.seed = 13101991
+    def __init__(self, random_song=False, seed=None):
+        if seed is None:
+            print("noSeed")
+            seed = random.randrange(99999999)
+
+        self.seed = seed
+        print("seed : ", self.seed)
         random.seed(self.seed)
         self.instruments = {}
-        chords = list(MidiGenerator.chords.keys())
+        # chords = list(MidiGenerator.chords.keys())
+        chords = ["Am", "Dm", "Em", "F", "C", "G"]
         if not random_song:
             epiano = "Em    Am    D7    B7    Em    C    Am    B7    Em    Am    D7    B7    Em    C    Am    B7    Em    " \
                      "Am    D7    B7    Em    C    Am    B7    stop "
@@ -24,11 +31,14 @@ class Song:
 
         else:
             instruments_number = int(random.random() * 3) + 1
+            times = int(random.random() * 10) + 4
             for i in range(instruments_number):
                 score = ""
-                for note_index in range(int(random.random() * 10) + 4):
+                for note_index in range(times):
                     score += random.choice(chords) + (" " * (int(random.random() * 4) + 1))
 
-                    print(score)
+                    log(score)
                 self.instruments[int(random.random() * 128) + 1] = {"score": score * (int(random.random() * 10) + 3),
                                                                     "volume": int(random.random() * 40) + 20}
+        print(self.instruments.keys())
+        print(self.instruments.values())

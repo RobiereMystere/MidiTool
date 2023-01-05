@@ -7,6 +7,7 @@ from midi_player import MidiPlayer
 from song import Song
 
 if __name__ == '__main__':
+    #song1 = Song(True,34535778)
     song1 = Song(True)
     midi_filename = "test_midi.mid"
     config_midi = ConfigMidi(song1.instruments, 180, 30)
