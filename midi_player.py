@@ -10,5 +10,5 @@ class MidiPlayer:
         pygame.init()
         pygame.mixer.music.load(self.midi_file)
         pygame.mixer.music.play()
-        while(pygame.mixer.music.get_busy()):
+        while pygame.mixer.music.get_busy():
             pass

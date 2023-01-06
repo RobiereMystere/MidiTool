@@ -1,5 +1,7 @@
 from midiutil import MIDIFile
 
+from config_midi import ConfigMidi
+from instrument import Instrument
 from loglib import log
 
 
@@ -90,66 +92,84 @@ class MidiGenerator:
         "G#madd9": ["G#", "C", "D#", "A"]
     }
 
-    def __init__(self, config=None):
+    def __init__(self, config: ConfigMidi = None):
         super().__init__()
         self.time = 0
         if config is not None:
             self.track_number = config.track_number
-            self.channel_number = config.channel_number
-            self.instruments = config.instruments
             self.tempo = config.tempo
             self.default_volume = config.default_volume
+            self.ensemble = config.ensemble
         else:
             self.default_volume = 20
             self.track_number = 1
-            self.channel_number = 1
-            self.instruments = {1: "Piano"}
             self.tempo = 120
 
-        self.midi = MIDIFile(self.channel_number)
+        self.midi = MIDIFile(self.track_number)
         track = 0
-        for instrument_index, instrument_name in self.instruments.items():
-            self.midi.addTrackName(track, 0, "Track" + str(track))
-            self.midi.addTempo(track, 0, self.tempo)
-            self.midi.addProgramChange(track, 0, 0, instrument_index)
-            track += 1
+        for channel, instrument in self.ensemble.channels[Instrument.MELODIC].items():
+            if instrument is not None:
+                print("CHANNEL : ", channel, instrument)
+                self.midi.addTrackName(track, 0, "Track" + str(track))
+                self.midi.addTempo(track, 0, self.tempo)
+                self.midi.addProgramChange(track, channel, 0, instrument.program)
+                track += 1
+        for channel, instrument in self.ensemble.channels[Instrument.PERCUSSIVE].items():
+            if instrument is not None:
+                print("CHANNEL : ", channel, instrument)
+                self.midi.addTrackName(track, 0, "Track" + str(track))
+                self.midi.addTempo(track, 0, self.tempo)
+                self.midi.addProgramChange(track, channel, 0, instrument.program)
+                track += 1
 
-    def read_score(self, delimiter, channel=1):
+    def read_instrument(self, track, channel, instrument, delimiter):
+        self.time = 0
+        notes = instrument.score.split(delimiter)
+        previous = ""
+        duration = 1
+        for note in notes:
+            if note == "":
+                duration += 1
+                if previous == "":
+                    self.time += 1
+                    duration = 1
+            else:
+                if previous != "" and duration:
+                    if previous[0].isupper():
+                        self.add_chord(track, previous, duration, instrument.volume, channel)
+                    else:
+                        self.add_note(track, previous, duration, instrument.volume, channel)
+                    duration = 1
+
+                previous = note
+
+    def read_score(self, delimiter):
         track = 0
-        for instrument, caracteristics in self.instruments.items():
-            self.time = 0
-            notes = caracteristics["score"].split(delimiter)
-            previous = ""
-            duration = 1
-            for note in notes:
-                if note == "":
-                    duration += 1
-                    if previous == "":
-                        self.time += 1
-                        duration = 1
-                else:
-                    if previous != "" and duration:
-                        if previous[0].isupper():
-                            self.add_chord(track, previous, duration, caracteristics["volume"],
-                                           caracteristics["channel"])
-                        else:
-                            self.add_note(track, previous, duration, caracteristics["volume"],
-                                          caracteristics["channel"])
-                        duration = 1
+        for channel, instrument in self.ensemble.channels[Instrument.PERCUSSIVE].items():
+            if instrument is not None:
+                self.read_instrument(track, channel, instrument, delimiter)
+                track += 1
 
-                    previous = note
-            track += 1
+        for channel, instrument in self.ensemble.channels[Instrument.MELODIC].items():
+            if instrument is not None:
+                self.read_instrument(track, channel, instrument, delimiter)
+                track += 1
 
     def add_chord(self, track, chord, duration, volume, channel):
         for note in self.chords[chord]:
             log(track, track, self.notes[note.upper()], self.time, duration, volume)
-            self.midi.addNote(track, channel, self.notes[note.upper()] + 12, self.time, duration, volume)
+            self.midi.addNote(track, channel, self.notes[note.upper()] + 18, self.time, duration, volume)
 
         self.time += duration
 
     def add_note(self, track, note, duration, volume, channel):
-        log(track, track, self.notes[note.upper()], self.time, duration, volume)
-        self.midi.addNote(track, channel, self.notes[note.upper()] + 12, self.time, duration, volume)
+        if note.isdigit():
+
+            log(track, track, int(note), self.time, duration, volume)
+            self.midi.addNote(track, channel, int(note), self.time, duration, volume)
+        else:
+            log(track, track, self.notes[note.upper()], self.time, duration, volume)
+            self.midi.addNote(track, channel, self.notes[note.upper()] + 24, self.time, duration, volume)
         self.time += duration
 
     def write_file(self, filename):
