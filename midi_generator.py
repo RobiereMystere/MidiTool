@@ -23,7 +23,9 @@ class MidiGenerator:
         "GB": 30,
         "G": 31,
         "G#": 32,
-        "AB": 32
+        "AB": 32,
+        " ": 0,
+        "~": -1
     }
     chords = {
         "A": ["A", "C#", "E"],
@@ -128,7 +130,7 @@ class MidiGenerator:
         previous = ""
         duration = 1
         for note in notes:
-            if note == "":
+            if note == "~":
                 duration += 1
                 if previous == "":
                     self.time += 1
