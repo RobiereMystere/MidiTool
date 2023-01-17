@@ -29,10 +29,12 @@ class Song:
         weights = [1] * len(chords)
         weights[len(weights) - 1] = 3 * int(len(weights) / 5)
         times = int(random.random() * 10) + 4
-        times = 8
+        times = 1
+
         repeat = (int(random.random() * 2) + 2)
         if random_song:
             instruments_number = int(random.random() * 1) + 2
+            instruments_number = 0
             note_number = (int(random.random() * 4) + 4) * repeat
             for i in range(instruments_number):
                 program = int(random.random() * 128)
@@ -50,5 +52,4 @@ class Song:
                 weights[len(weights) - 1] = len(weights)
                 for note in random.choices(drumsnote, weights=weights, k=note_number):
                     drumscore += str(note) + "|"
-
             self.ensemble.append(Instrument(Instrument.PERCUSSIVE, program, volume, drumscore * times))

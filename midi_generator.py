@@ -124,32 +124,32 @@ class MidiGenerator:
                 self.midi.addProgramChange(track, channel, 0, instrument.program)
                 track += 1
 
-    def read_instrument(self, track, channel, instrument, delimiter):
+    def read_instrument(self, track, channel, instrument, delimiter, time_div=1):
         self.time = 0
         notes = instrument.score.split(delimiter)
         previous = ""
-        duration = 1
+        duration = time_div
         for note in notes:
             if note == "~":
-                duration += 1
+                duration += time_div
                 if previous == "":
-                    self.time += 1
-                    duration = 1
+                    self.time += time_div
+                    duration = time_div
             else:
                 if previous != "" and duration:
                     if previous[0].isupper():
                         self.add_chord(track, previous, duration, instrument.volume, channel)
                     else:
                         self.add_note(track, previous, duration, instrument.volume, channel)
-                    duration = 1
+                    duration = time_div
 
                 previous = note
 
-    def read_score(self, delimiter):
+    def read_score(self, delimiter, time_div=1):
         track = 0
         for channel, instrument in self.ensemble.channels[Instrument.PERCUSSIVE].items():
             if instrument is not None:
-                self.read_instrument(track, channel, instrument, delimiter)
+                self.read_instrument(track, channel, instrument, delimiter, time_div)
                 track += 1
 
         for channel, instrument in self.ensemble.channels[Instrument.MELODIC].items():
